@@ -1,0 +1,102 @@
+Enum role_type {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+}
+
+Table users {
+  id integer [primary key]
+  email varchar unique [not null]
+  password varchar [not null]
+  created_at timestamp 
+  updated_at timestamp
+}
+
+Table profiles {
+  user_id integer unique
+  email varchar unique [not null]
+  is_email_verficated bool [default: false]
+  display_name varchar [not null]
+  phone_number varchar unique [not null]
+  profile_images varchar[]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table policies {
+  id integer [primary key]
+  name varchar [not null]
+  content text [not null]
+  content_text text [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table user_policies {
+  user_id integer
+  policy_id integer
+  is_accept bool [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table roles {
+  id integer [primary key]
+  name varchar [not null]
+  description varchar [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table user_role {
+  user_id integer
+  role_id integer
+  invoked_at timestamp
+  revoked_at timestamp
+}
+
+Table previligies {
+  role_id integer
+  table_name varchar [not null]
+  type role_type [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table providers {
+  id integer [primary key]
+  name varchar [not null]
+  description varchar [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table sessions {
+  user_id integer
+  provider_id integer
+  device_id varchar [not null]
+  refresh_token varchar
+  refresh_token_expires timestamp
+  signed_in_at timestamp [not null]
+  last_active_at timestamp [not null]
+}
+
+Table phone_verification_code {
+  id integer [primary key]
+  phone_number varchar [not null]
+  verification_code integer [not null]
+  is_verficated bool [default: false]
+}
+
+Ref: "profiles"."user_id" - "users"."id"
+
+Ref: "user_policies"."user_id" > "users"."id"
+Ref: "user_policies"."policy_id" > "policies"."id"
+
+Ref: "user_role"."user_id" > "users"."id"
+Ref: "user_role"."role_id" > "roles"."id"
+Ref: "previligies"."role_id" > "roles"."id"
+
+Ref: "sessions"."user_id" > "users"."id"
+Ref: "sessions"."provider_id" > "providers"."id"
