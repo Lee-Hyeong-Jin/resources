@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17.2
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: ihyeongjin1234!
+      POSTGRES_DB: user-domain-test
+    ports:
+      - 5432:5432
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 48080:8080

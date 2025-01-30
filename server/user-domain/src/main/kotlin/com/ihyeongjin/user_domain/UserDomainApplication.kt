@@ -1,11 +1,11 @@
-package com.Iloar.user_domain_test
+package com.ihyeongjin.user_domain
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class UserDomainTestApplication
+class UserDomainApplication
 
 fun main(args: Array<String>) {
-	runApplication<UserDomainTestApplication>(*args)
+	runApplication<UserDomainApplication>(*args)
 }

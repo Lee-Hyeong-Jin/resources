@@ -5,98 +5,122 @@ Enum role_type {
   DELETE
 }
 
+Enum policy_status {
+  ACCEPT
+  REJECT
+}
+
 Table users {
-  id integer [primary key]
-  email varchar unique [not null]
-  password varchar [not null]
-  created_at timestamp 
-  updated_at timestamp
+  id                   bigint        [primary key]
+  email                varchar        [not null, unique]
+  password             varchar        [not null]
+  email_verified_at    timestamp                     // 이메일 인증 시점
+  created_at           timestamp      [not null]      // 필요시 default: CURRENT_TIMESTAMP
+  updated_at           timestamp      [not null]      // 필요시 default: CURRENT_TIMESTAMP
 }
 
 Table profiles {
-  user_id integer unique
-  email varchar unique [not null]
-  is_email_verficated bool [default: false]
-  display_name varchar [not null]
-  phone_number varchar unique [not null]
-  profile_images varchar[]
-  created_at timestamp
-  updated_at timestamp
+  user_id              bigint         [primary key] 
+  display_name         varchar        [not null]
+  phone_number         varchar        [unique, not null]
+  profile_images       varchar[]      // 이미지 url 배열
+  created_at           timestamp      [not null]
+  updated_at           timestamp      [not null]
 }
 
 Table policies {
-  id integer [primary key]
-  name varchar [not null]
-  content text [not null]
-  content_text text [not null]
-  created_at timestamp
-  updated_at timestamp
+  id                   bigint        [primary key]
+  name                 varchar       [not null]       // 정책 이름 (개정 시점 명칭 또는 별도 표기)
+  created_at           timestamp      [not null]
+  updated_at           timestamp      [not null]
+}
+
+Table policy_histories {
+  id             bigint        [primary key]
+  policy_id      bigint        [not null]
+  version        varchar       [not null]       // 정책 버전 식별(예: "v1.0", "v2.0")
+  content        text          [not null]       // 개정 시점의 원본(HTML/Markdown) 등
+  content_text   text          [not null]       // 개정 시점의 텍스트 버전
+  effective_at   timestamp                     // 해당 버전 발효 시점
+  created_at     timestamp      [not null]
+  updated_at     timestamp      [not null]
 }
 
 Table user_policies {
-  user_id integer
-  policy_id integer
-  is_accept bool [default: false]
-  created_at timestamp
-  updated_at timestamp
+  user_id              bigint        [primary key]
+  policy_id            bigint        [primary key]
+  status               policy_status [not null]
+  created_at           timestamp      [not null]
+  updated_at           timestamp      [not null]
 }
 
 Table roles {
-  id integer [primary key]
-  name varchar [not null]
-  description varchar [not null]
-  created_at timestamp
-  updated_at timestamp
+  id                   bigint        [primary key]
+  name                 varchar        [not null]
+  description          varchar        [not null]
+  created_at           timestamp      [not null]
+  updated_at           timestamp      [not null]
 }
 
-Table user_role {
-  user_id integer
-  role_id integer
-  invoked_at timestamp
-  revoked_at timestamp
+Table user_roles {
+  user_id              bigint        [primary key]
+  role_id              bigint        [primary key]
+  invoked_at           timestamp      [not null]
+  revoked_at           timestamp
 }
 
-Table previligies {
-  role_id integer
-  table_name varchar [not null]
-  type role_type [not null]
-  created_at timestamp
-  updated_at timestamp
+Table privileges {
+  id                   bigint         [primary key]
+  role_id              bigint         [not null]
+  table_name           varchar        [not null]
+  type                 role_type      [not null]  // CREATE, READ, UPDATE, DELETE
+  created_at           timestamp      [not null]
+  updated_at           timestamp      [not null]
 }
 
 Table providers {
-  id integer [primary key]
-  name varchar [not null]
-  description varchar [not null]
-  created_at timestamp
-  updated_at timestamp
+  id                   bigint        [primary key]
+  name                 varchar        [not null]
+  description          varchar        [not null]
+  created_at           timestamp      [not null]
+  updated_at           timestamp      [not null]
 }
 
 Table sessions {
-  user_id integer
-  provider_id integer
-  device_id varchar [not null]
-  refresh_token varchar
+  id                   bigint        [primary key]
+  user_id              bigint        [not null]
+  provider_id          bigint        [not null]
+  device_id            varchar        [not null]
+  refresh_token        varchar
   refresh_token_expires timestamp
-  signed_in_at timestamp [not null]
-  last_active_at timestamp [not null]
+  signed_in_at         timestamp      [not null]
+  last_active_at       timestamp      [not null]
 }
 
-Table phone_verification_code {
-  id integer [primary key]
-  phone_number varchar [not null]
-  verification_code integer [not null]
-  is_verficated bool [default: false]
+Table phone_verification_codes {
+  id                   bigint        [primary key]
+  phone_number         varchar        [not null]
+  verification_code    integer        [not null]
+  code_expires_at      timestamp      [not null]  // 만료 시점
+  verified_at          timestamp
+  created_at           timestamp      [not null]
+  updated_at           timestamp      [not null]
 }
 
+// ---------------
+// Relationships
+// ---------------
 Ref: "profiles"."user_id" - "users"."id"
 
 Ref: "user_policies"."user_id" > "users"."id"
 Ref: "user_policies"."policy_id" > "policies"."id"
+Ref: "policy_histories"."policy_id" > "policies"."id"
 
-Ref: "user_role"."user_id" > "users"."id"
-Ref: "user_role"."role_id" > "roles"."id"
-Ref: "previligies"."role_id" > "roles"."id"
+
+Ref: "user_roles"."user_id" > "users"."id"
+Ref: "user_roles"."role_id" > "roles"."id"
+
+Ref: "privileges"."role_id" > "roles"."id"
 
 Ref: "sessions"."user_id" > "users"."id"
 Ref: "sessions"."provider_id" > "providers"."id"
